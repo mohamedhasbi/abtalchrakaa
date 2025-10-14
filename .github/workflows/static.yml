@@ -1,0 +1,1540 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام إدارة صالة التايكوندو</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Tajawal', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+        body.fr {
+            font-family: 'Roboto', sans-serif;
+            direction: ltr;
+        }
+        .belt-white { background-color: white; border: 2px solid #d1d5db; color: #1f2937; }
+        .belt-yellow { background-color: #fbbf24; border: 2px solid #b45309; color: #7c2d12; }
+        .belt-green { background-color: #10b981; border: 2px solid #065f46; color: white; }
+        .belt-blue { background-color: #3b82f6; border: 2px solid #1e40af; color: white; }
+        .belt-blue-red { background-color: #3b82f6; border: 2px solid #dc2626; color: white; }
+        .belt-red { background-color: #dc2626; border: 2px solid #991b1b; color: white; }
+        .belt-red-black { background-color: #dc2626; border: 2px solid #000000; color: white; }
+        .belt-red-double { background-color: #dc2626; border: 4px solid #000000; color: white; }
+        .belt-black { background-color: black; border: 2px solid #1f2937; color: white; }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #ebf5ff;
+        }
+        .upload-area i {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #6b7280;
+        }
+        .upload-area p {
+            margin: 0;
+            color: #6b7280;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        /* Smooth animations */
+        .smooth-slide {
+            transform: translateX(0);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .slide-in {
+            animation: slideIn 0.4s ease forwards;
+        }
+        .slide-out {
+            animation: slideOut 0.4s ease forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+        .dark-mode .bg-white {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+        .dark-mode .text-gray-600 {
+            color: #9ca3af;
+        }
+        .dark-mode .text-gray-900 {
+            color: #f9fafb;
+        }
+        .dark-mode .border-gray-300 {
+            border-color: #374151;
+        }
+        .dark-mode .bg-gray-100 {
+            background-color: #1f2937;
+        }
+        .dark-mode .upload-area {
+            border-color: #4b5563;
+            background-color: #1f2937;
+        }
+        .dark-mode .upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #111827;
+        }
+        .dark-mode .upload-area i,
+        .dark-mode .upload-area p {
+            color: #9ca3af;
+        }
+        .dark-mode .bg-green-100 {
+            background-color: #065f46;
+        }
+        .dark-mode .text-green-800 {
+            color: #6ee7b7;
+        }
+        .dark-mode input[type="text"],
+        .dark-mode input[type="number"],
+        .dark-mode input[type="tel"],
+        .dark-mode input[type="date"],
+        .dark-mode select,
+        .dark-mode input[type="password"] {
+            background-color: #1f2937;
+            color: #f9fafb;
+            border-color: #374151;
+        }
+        .dark-mode input:focus,
+        .dark-mode select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Login form styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            margin: 1rem;
+        }
+        .dark-mode .login-form {
+            background: #111827;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .stats-grid-mobile {
+                grid-template-columns: 1fr !important;
+            }
+            .header-buttons {
+                flex-direction: row;
+                gap: 0.5rem;
+            }
+            .header-buttons button,
+            .header-buttons select {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
+            }
+            .player-card {
+                padding: 1rem !important;
+            }
+            .modal-content {
+                margin: 0.5rem;
+                padding: 1.5rem !important;
+            }
+        }
+        
+        /* Age category badges */
+        .category-children { background-color: #10b981; color: white; }
+        .category-youth { background-color: #3b82f6; color: white; }
+        .category-teenagers { background-color: #8b5cf6; color: white; }
+        .category-adults { background-color: #ef4444; color: white; }
+        
+        /* Alert badges */
+        .alert-insurance { background-color: #fbbf24; color: #7c2d12; }
+        .alert-month { background-color: #f87171; color: #7f1d1d; }
+        
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .player-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <!-- Login Page -->
+    <div id="login-page" class="login-container">
+        <div class="login-form">
+            <div class="text-center mb-6">
+                <img src="https://i.imgur.com/5GQqJZK.png" alt="شعار الجمعية" class="w-16 h-16 rounded-full object-cover mx-auto mb-4">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">تسجيل الدخول</h2>
+                <p class="text-gray-600 dark:text-gray-300 mt-2">ادخل بياناتك للوصول إلى النظام</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">اسم المستخدم</label>
+                    <input type="text" id="username" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">كلمة المرور</label>
+                    <input type="password" id="password" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                    تسجيل الدخول
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="main-dashboard" class="hidden">
+        <!-- Header with Logo -->
+        <header class="bg-white shadow-sm border-b dark:bg-gray-800 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.imgur.com/5GQqJZK.png" alt="شعار الجمعية" class="w-12 h-12 rounded-full object-cover sm:w-16 sm:h-16">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl" id="main-title">نظام إدارة صالة التايكوندو</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 sm:text-base" id="subtitle">جمعية أبطال شراكا للتايكوندو</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 header-buttons">
+                        <button id="print-current-month" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-lg font-medium flex items-center gap-1 transition-colors sm:px-3 sm:py-2 no-print">
+                            <i class="fas fa-print text-xs sm:text-base"></i>
+                            <span class="text-xs sm:text-base">طباعة الشهر الحالي</span>
+                        </button>
+                        <button id="print-uninsured" class="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded-lg font-medium flex items-center gap-1 transition-colors sm:px-3 sm:py-2 no-print">
+                            <i class="fas fa-print text-xs sm:text-base"></i>
+                            <span class="text-xs sm:text-base">طباعة غير المضمونين</span>
+                        </button>
+                        <select id="language-select" class="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white sm:px-4 sm:py-2 sm:text-base">
+                            <option value="ar">العربية</option>
+                            <option value="fr">Français</option>
+                        </select>
+                        <button id="dark-mode-toggle" class="p-1 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors sm:p-2">
+                            <i class="fas fa-moon text-gray-700 dark:text-gray-300"></i>
+                        </button>
+                        <button id="add-player-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg font-medium flex items-center gap-1 transition-colors sm:px-4 sm:py-2 sm:gap-2">
+                            <i class="fas fa-plus text-xs sm:text-base"></i>
+                            <span id="add-player-text" class="text-xs sm:text-base">إضافة</span>
+                        </button>
+                        <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg font-medium transition-colors sm:px-3 sm:py-2">
+                            <i class="fas fa-sign-out-alt text-xs sm:text-base"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Stats -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="grid grid-cols-2 stats-grid sm:grid-cols-4 gap-4 mb-4 stats-grid-mobile" id="stats-container">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-4 dark:bg-gray-800 no-print">
+                <div class="flex flex-col gap-3">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm"></i>
+                            <input type="text" id="search-input" placeholder="البحث بالاسم أو الهاتف..." class="w-full pl-8 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white sm:text-base">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+                        <select id="month-filter" class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white sm:text-base">
+                            <option value="">جميع الأشهر</option>
+                            <option value="يناير">يناير</option>
+                            <option value="فبراير">فبراير</option>
+                            <option value="مارس">مارس</option>
+                            <option value="أبريل">أبريل</option>
+                            <option value="ماي">ماي</option>
+                            <option value="يونيو">يونيو</option>
+                            <option value="يوليوز">يوليوز</option>
+                            <option value="غشت">غشت</option>
+                            <option value="شتنبر">شتنبر</option>
+                            <option value="أكتوبر">أكتوبر</option>
+                            <option value="نونبر">نونبر</option>
+                            <option value="دجنبر">دجنبر</option>
+                        </select>
+                        <select id="level-filter" class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white sm:text-base">
+                            <option value="">جميع الرتب</option>
+                            <option value="أبيض">أبيض</option>
+                            <option value="أصفر">أصفر</option>
+                            <option value="أخضر">أخضر</option>
+                            <option value="أزرق">أزرق</option>
+                            <option value="أزرق (خط أحمر)">أزرق (خط أحمر)</option>
+                            <option value="أحمر">أحمر</option>
+                            <option value="أحمر (خط أسود)">أحمر (خط أسود)</option>
+                            <option value="أحمر (خطين أسودين)">أحمر (خطين أسودين)</option>
+                            <option value="أسود">أسود</option>
+                        </select>
+                        <select id="gender-filter" class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white sm:text-base">
+                            <option value="">جميع الجنسين</option>
+                            <option value="ذكر">ذكور</option>
+                            <option value="أنثى">إناث</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Players Grid -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" id="players-container">
+                <!-- Players will be populated by JavaScript -->
+            </div>
+
+            <div class="text-center py-8 hidden" id="no-players-message">
+                <div class="text-gray-400 mb-4 dark:text-gray-500">
+                    <i class="fas fa-user fa-2x"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2" id="no-players-title">لا يوجد لاعبين</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm" id="no-players-desc">لم يتم العثور على لاعبين يطابقون معايير البحث الخاصة بك.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Player Modal -->
+    <div id="player-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50 hidden">
+        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-gray-800 modal-content slide-in">
+            <div class="p-4 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl" id="modal-title">إضافة لاعب جديد</h2>
+                    <button type="button" onclick="hideModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="player-form" class="space-y-4">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="name-label">الاسم الكامل</label>
+                            <input type="text" id="name" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="birth-date-label">تاريخ الميلاد</label>
+                            <input type="date" id="birth-date" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="age-label">العمر (يتم احتسابه تلقائياً)</label>
+                            <input type="number" id="age" readonly class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 cursor-not-allowed dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="weight-label">الوزن (كغ)</label>
+                            <input type="number" id="weight" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="height-label">الطول (سم)</label>
+                            <input type="number" id="height" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="gender-label">الجنس</label>
+                            <div class="flex gap-3">
+                                <label class="flex items-center">
+                                    <input type="radio" name="gender" value="ذكر" checked class="text-blue-600 focus:ring-blue-500 dark:text-blue-400">
+                                    <span class="mr-1 text-sm" id="male-text">ذكر</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="gender" value="أنثى" class="text-blue-600 focus:ring-blue-500 dark:text-blue-400">
+                                    <span class="mr-1 text-sm" id="female-text">أنثى</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="level-label">الرتبة</label>
+                            <select id="level" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                <option value="أبيض">أبيض</option>
+                                <option value="أصفر">أصفر</option>
+                                <option value="أخضر">أخضر</option>
+                                <option value="أزرق">أزرق</option>
+                                <option value="أزرق (خط أحمر)">أزرق (خط أحمر)</option>
+                                <option value="أحمر">أحمر</option>
+                                <option value="أحمر (خط أسود)">أحمر (خط أسود)</option>
+                                <option value="أحمر (خطين أسودين)">أحمر (خطين أسودين)</option>
+                                <option value="أسود">أسود</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="phone-label">رقم الهاتف</label>
+                            <input type="tel" id="phone" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="address-label">العنوان</label>
+                            <input type="text" id="address" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cin-label">رقم البطاقة الوطنية (CIN)</label>
+                            <input type="text" id="cin" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="إذا كان متوفر">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="birth-certificate-label">رقم عقد الازدياد</label>
+                            <input type="text" id="birth-certificate" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="إذا لم يكن CIN متوفر">
+                        </div>
+                    </div>
+                    
+                    <!-- Photo Upload Section -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="photo-label">صورة اللاعب</label>
+                        <div id="photo-upload-area" class="upload-area dark:border-gray-600 dark:bg-gray-700">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p id="upload-text" class="text-sm">انقر هنا لتحميل صورة أو اسحب وأفلت الصورة</p>
+                            <input type="file" id="photo-upload" accept="image/*" class="hidden">
+                            <img id="photo-preview" class="preview-image" alt="Preview">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="months-label">الأشهر المكتملة</label>
+                        <div class="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-2" id="months-checkboxes">
+                            <!-- Months checkboxes will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="insurance-label">التأمين</label>
+                        <div class="flex gap-3">
+                            <label class="flex items-center">
+                                <input type="radio" name="insurance" value="نعم" class="text-blue-600 focus:ring-blue-500 dark:text-blue-400" onchange="toggleInsuranceType()">
+                                <span class="mr-1 text-sm" id="insurance-yes">نعم</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="insurance" value="لا" checked class="text-blue-600 focus:ring-blue-500 dark:text-blue-400" onchange="toggleInsuranceType()">
+                                <span class="mr-1 text-sm" id="insurance-no">لا</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="insurance-type-container" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="insurance-type-label">نوع التأمين</label>
+                        <select id="insurance-type" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            <option value="تأمين الجامعة">تأمين الجامعة</option>
+                            <option value="تأمين شركة خاصة">تأمين شركة خاصة</option>
+                        </select>
+                    </div>
+                    
+                    <div id="insurance-number-container" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="insurance-number-label">رقم التأمين</label>
+                        <input type="text" id="insurance-number" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="أدخل رقم التأمين">
+                    </div>
+                    
+                    <div class="flex gap-2 pt-2 sm:gap-3">
+                        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-medium transition-colors text-sm sm:text-base" id="submit-btn">
+                            إضافة
+                        </button>
+                        <button type="button" onclick="hideModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-3 rounded-lg font-medium transition-colors dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700 text-sm sm:text-base" id="cancel-btn">
+                            إلغاء
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Credentials for login
+        const validCredentials = {
+            username: 'admin',
+            password: 'password123'
+        };
+
+        // Translation object
+        const translations = {
+            ar: {
+                mainTitle: "نظام إدارة صالة التايكوندو",
+                subtitle: "جمعية أبطال شراكا للتايكوندو",
+                addPlayer: "إضافة لاعب جديد",
+                noPlayers: "لا يوجد لاعبين",
+                noPlayersDesc: "لم يتم العثور على لاعبين يطابقون معايير البحث الخاصة بك.",
+                nameLabel: "الاسم الكامل",
+                birthDateLabel: "تاريخ الميلاد",
+                ageLabel: "العمر (يتم احتسابه تلقائياً)",
+                weightLabel: "الوزن (كغ)",
+                heightLabel: "الطول (سم)",
+                genderLabel: "الجنس",
+                male: "ذكر",
+                female: "أنثى",
+                levelLabel: "الرتبة",
+                phoneLabel: "رقم الهاتف",
+                addressLabel: "العنوان",
+                cinLabel: "رقم البطاقة الوطنية (CIN)",
+                birthCertificateLabel: "رقم عقد الازدياد",
+                photoLabel: "صورة اللاعب",
+                uploadText: "انقر هنا لتحميل صورة أو اسحب وأفلت الصورة",
+                monthsLabel: "الأشهر المكتملة",
+                insuranceLabel: "التأمين",
+                insuranceYes: "نعم",
+                insuranceNo: "لا",
+                insuranceTypeLabel: "نوع التأمين",
+                insuranceNumberLabel: "رقم التأمين",
+                submitBtn: "إضافة",
+                cancelBtn: "إلغاء",
+                editBtn: "تعديل",
+                deleteBtn: "حذف",
+                searchPlaceholder: "البحث بالاسم أو الهاتف...",
+                allMonths: "جميع الأشهر",
+                allLevels: "جميع الرتب",
+                allGenders: "جميع الجنسين",
+                males: "ذكور",
+                females: "إناث",
+                totalPlayers: "عدد المنخرطين",
+                malePlayers: "اللاعبين الذكور",
+                femalePlayers: "اللاعبين الإناث",
+                insuredPlayers: "اللاعبين مع تأمين",
+                completedMonths: "الأشهر المكتملة",
+                withInsurance: "مع تأمين",
+                withoutInsurance: "بدون تأمين",
+                universityInsurance: "تأمين الجامعة",
+                privateInsurance: "تأمين شركة خاصة",
+                white: "أبيض",
+                yellow: "أصفر",
+                green: "أخضر",
+                blue: "أزرق",
+                blueRed: "أزرق (خط أحمر)",
+                red: "أحمر",
+                redBlack: "أحمر (خط أسود)",
+                redDouble: "أحمر (خطين أسودين)",
+                black: "أسود",
+                login: "تسجيل الدخول",
+                username: "اسم المستخدم",
+                password: "كلمة المرور",
+                invalidCredentials: "اسم المستخدم أو كلمة المرور غير صحيحة",
+                logout: "تسجيل الخروج",
+                children: "البراعم",
+                youth: "الفتيان",
+                teenagers: "الشباب",
+                adults: "الكبار",
+                insuranceAlert: "اللاعبين غير المضمونين",
+                monthAlert: "اللاعبين غير المكتملين للشهر الحالي",
+                currentMonthPlayers: "اللاعبين المكتملين للشهر الحالي",
+                uninsuredPlayers: "اللاعبين غير المضمونين"
+            },
+            fr: {
+                mainTitle: "Système de gestion du club de Taekwondo",
+                subtitle: "Association des Champions Charraka de Taekwondo",
+                addPlayer: "Ajouter un nouveau joueur",
+                noPlayers: "Aucun joueur trouvé",
+                noPlayersDesc: "Aucun joueur ne correspond à vos critères de recherche.",
+                nameLabel: "Nom complet",
+                birthDateLabel: "Date de naissance",
+                ageLabel: "Âge (calculé automatiquement)",
+                weightLabel: "Poids (kg)",
+                heightLabel: "Taille (cm)",
+                genderLabel: "Genre",
+                male: "Masculin",
+                female: "Féminin",
+                levelLabel: "Grade",
+                phoneLabel: "Numéro de téléphone",
+                addressLabel: "Adresse",
+                cinLabel: "Numéro de la carte nationale (CIN)",
+                birthCertificateLabel: "Numéro de l'acte de naissance",
+                photoLabel: "Photo du joueur",
+                uploadText: "Cliquez ici pour télécharger une photo ou glissez-déposez",
+                monthsLabel: "Mois complétés",
+                insuranceLabel: "Assurance",
+                insuranceYes: "Oui",
+                insuranceNo: "Non",
+                insuranceTypeLabel: "Type d'assurance",
+                insuranceNumberLabel: "Numéro d'assurance",
+                submitBtn: "Ajouter",
+                cancelBtn: "Annuler",
+                editBtn: "Modifier",
+                deleteBtn: "Supprimer",
+                searchPlaceholder: "Rechercher par nom ou téléphone...",
+                allMonths: "Tous les mois",
+                allLevels: "Tous les grades",
+                allGenders: "Tous les genres",
+                males: "Masculin",
+                females: "Féminin",
+                totalPlayers: "Nombre total de membres",
+                malePlayers: "Joueurs masculins",
+                femalePlayers: "Joueuses féminines",
+                insuredPlayers: "Joueurs assurés",
+                completedMonths: "Mois complétés",
+                withInsurance: "Avec assurance",
+                withoutInsurance: "Sans assurance",
+                universityInsurance: "Assurance universitaire",
+                privateInsurance: "Assurance privée",
+                white: "Blanc",
+                yellow: "Jaune",
+                green: "Vert",
+                blue: "Bleu",
+                blueRed: "Bleu (ligne rouge)",
+                red: "Rouge",
+                redBlack: "Rouge (ligne noire)",
+                redDouble: "Rouge (deux lignes noires)",
+                black: "Noir",
+                login: "Connexion",
+                username: "Nom d'utilisateur",
+                password: "Mot de passe",
+                invalidCredentials: "Nom d'utilisateur ou mot de passe incorrect",
+                logout: "Déconnexion",
+                children: "Jeunes enfants",
+                youth: "Jeunes",
+                teenagers: "Adolescents",
+                adults: "Adultes",
+                insuranceAlert: "Joueurs non assurés",
+                monthAlert: "Joueurs n'ayant pas complété le mois actuel",
+                currentMonthPlayers: "Joueurs ayant complété le mois actuel",
+                uninsuredPlayers: "Joueurs non assurés"
+            }
+        };
+
+        // Mock data
+        let players = [
+            {
+                id: 1,
+                name: 'أحمد محمد',
+                age: 16,
+                weight: 55,
+                height: 170,
+                gender: 'ذكر',
+                birthDate: '2008-03-15',
+                level: 'أحمر',
+                phone: '0612345678',
+                address: 'الدار البيضاء',
+                cin: 'AB123456',
+                birthCertificate: '',
+                photo: 'https://placehold.co/100x100/4F46E5/FFFFFF?text=أ',
+                completedMonths: ['يناير', 'فبراير', 'مارس', 'أبريل'],
+                insurance: 'نعم',
+                insuranceType: 'تأمين الجامعة',
+                insuranceNumber: 'INS123456'
+            },
+            {
+                id: 2,
+                name: 'فاطمة الزهراء',
+                age: 14,
+                weight: 48,
+                height: 160,
+                gender: 'أنثى',
+                birthDate: '2010-06-20',
+                level: 'أزرق (خط أحمر)',
+                phone: '0687654321',
+                address: 'الرباط',
+                cin: '',
+                birthCertificate: '789012345',
+                photo: 'https://placehold.co/100x100/EC4899/FFFFFF?text=ف',
+                completedMonths: ['يناير', 'فبراير', 'مارس'],
+                insurance: 'لا',
+                insuranceType: '',
+                insuranceNumber: ''
+            },
+            {
+                id: 3,
+                name: 'يوسف علي',
+                age: 18,
+                weight: 62,
+                height: 175,
+                gender: 'ذكر',
+                birthDate: '2006-01-10',
+                level: 'أحمر (خط أسود)',
+                phone: '0655555555',
+                address: 'فاس',
+                cin: 'CD789012',
+                birthCertificate: '',
+                photo: 'https://placehold.co/100x100/10B981/FFFFFF?text=ي',
+                completedMonths: ['يناير', 'فبراير'],
+                insurance: 'نعم',
+                insuranceType: 'تأمين شركة خاصة',
+                insuranceNumber: 'PRV789012'
+            },
+            {
+                id: 4,
+                name: 'ليلى أحمد',
+                age: 15,
+                weight: 50,
+                height: 165,
+                gender: 'أنثى',
+                birthDate: '2009-08-12',
+                level: 'أخضر',
+                phone: '0622222222',
+                address: 'مراكش',
+                cin: '',
+                birthCertificate: '456789012',
+                photo: 'https://placehold.co/100x100/F59E0B/FFFFFF?text=ل',
+                completedMonths: ['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي'],
+                insurance: 'لا',
+                insuranceType: '',
+                insuranceNumber: ''
+            },
+            {
+                id: 5,
+                name: 'عمر خالد',
+                age: 10,
+                weight: 35,
+                height: 140,
+                gender: 'ذكر',
+                birthDate: '2014-05-25',
+                level: 'أصفر',
+                phone: '0633333333',
+                address: 'أكادير',
+                cin: '',
+                birthCertificate: '123456789',
+                photo: 'https://placehold.co/100x100/F97316/FFFFFF?text=ع',
+                completedMonths: ['يناير', 'فبراير'],
+                insurance: 'نعم',
+                insuranceType: 'تأمين الجامعة',
+                insuranceNumber: 'INS456789'
+            }
+        ];
+
+        const months = {
+            ar: ['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو', 'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر'],
+            fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+        };
+
+        const beltLevels = {
+            ar: [
+                { value: 'أبيض', label: 'أبيض' },
+                { value: 'أصفر', label: 'أصفر' },
+                { value: 'أخضر', label: 'أخضر' },
+                { value: 'أزرق', label: 'أزرق' },
+                { value: 'أزرق (خط أحمر)', label: 'أزرق (خط أحمر)' },
+                { value: 'أحمر', label: 'أحمر' },
+                { value: 'أحمر (خط أسود)', label: 'أحمر (خط أسود)' },
+                { value: 'أحمر (خطين أسودين)', label: 'أحمر (خطين أسودين)' },
+                { value: 'أسود', label: 'أسود' }
+            ],
+            fr: [
+                { value: 'أبيض', label: 'Blanc' },
+                { value: 'أصفر', label: 'Jaune' },
+                { value: 'أخضر', label: 'Vert' },
+                { value: 'أزرق', label: 'Bleu' },
+                { value: 'أزرق (خط أحمر)', label: 'Bleu (ligne rouge)' },
+                { value: 'أحمر', label: 'Rouge' },
+                { value: 'أحمر (خط أسود)', label: 'Rouge (ligne noire)' },
+                { value: 'أحمر (خطين أسودين)', label: 'Rouge (deux lignes noires)' },
+                { value: 'أسود', label: 'Noir' }
+            ]
+        };
+
+        let currentEditId = null;
+        let currentPhotoData = null;
+        let isDarkMode = false;
+        let currentLanguage = 'ar';
+        let currentPage = 'login'; // 'login', 'main'
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners for login
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            
+            // Event listeners for print buttons
+            document.getElementById('print-current-month').addEventListener('click', printCurrentMonthPlayers);
+            document.getElementById('print-uninsured').addEventListener('click', printUninsuredPlayers);
+            
+            // Initialize main dashboard
+            initializeMainDashboard();
+        });
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === validCredentials.username && password === validCredentials.password) {
+                showMainDashboard();
+            } else {
+                alert(translations[currentLanguage].invalidCredentials);
+            }
+        }
+
+        function handleLogout() {
+            showLoginPage();
+        }
+
+        function showLoginPage() {
+            currentPage = 'login';
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('main-dashboard').classList.add('hidden');
+        }
+
+        function showMainDashboard() {
+            currentPage = 'main';
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            
+            renderPlayers();
+            renderStats();
+        }
+
+        function initializeMainDashboard() {
+            populateMonthsCheckboxes();
+            
+            // Event listeners
+            document.getElementById('search-input').addEventListener('input', filterPlayers);
+            document.getElementById('month-filter').addEventListener('change', filterPlayers);
+            document.getElementById('level-filter').addEventListener('change', filterPlayers);
+            document.getElementById('gender-filter').addEventListener('change', filterPlayers);
+            document.getElementById('player-form').addEventListener('submit', handleFormSubmit);
+            document.getElementById('birth-date').addEventListener('change', calculateAge);
+            document.getElementById('dark-mode-toggle').addEventListener('click', toggleDarkMode);
+            document.getElementById('language-select').addEventListener('change', changeLanguage);
+            document.getElementById('add-player-btn').addEventListener('click', showAddModal);
+            
+            // Photo upload functionality
+            setupPhotoUpload();
+            
+            // Load preferences
+            const savedDarkMode = localStorage.getItem('darkMode');
+            const savedLanguage = localStorage.getItem('language');
+            if (savedDarkMode === 'true') {
+                enableDarkMode();
+            }
+            if (savedLanguage) {
+                currentLanguage = savedLanguage;
+                document.getElementById('language-select').value = savedLanguage;
+                updateLanguage(savedLanguage);
+            }
+        }
+
+        function setupPhotoUpload() {
+            const uploadArea = document.getElementById('photo-upload-area');
+            const fileInput = document.getElementById('photo-upload');
+            const previewImage = document.getElementById('photo-preview');
+            
+            // Click to select file
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#3b82f6';
+                uploadArea.style.backgroundColor = '#ebf5ff';
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = 'transparent';
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = 'transparent';
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    handleFile(file);
+                }
+            });
+            
+            // File selection
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert(currentLanguage === 'ar' ? 'الرجاء اختيار ملف صورة فقط' : 'Veuillez sélectionner uniquement un fichier image');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentPhotoData = e.target.result;
+                const previewImage = document.getElementById('photo-preview');
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function populateMonthsCheckboxes() {
+            const container = document.getElementById('months-checkboxes');
+            container.innerHTML = '';
+            months[currentLanguage].forEach((month, index) => {
+                const div = document.createElement('label');
+                div.className = 'flex items-center';
+                div.innerHTML = `
+                    <input type="checkbox" value="${months.ar[index]}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:text-blue-400">
+                    <span class="mr-1 text-xs text-gray-700 dark:text-gray-300 sm:text-sm">${month}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function calculateAge() {
+            const birthDate = document.getElementById('birth-date').value;
+            if (!birthDate) return;
+            
+            const today = new Date();
+            const birth = new Date(birthDate);
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            document.getElementById('age').value = age;
+        }
+
+        function getAgeCategory(age) {
+            if (age >= 8 && age <= 11) {
+                return 'children';
+            } else if (age >= 12 && age <= 14) {
+                return 'youth';
+            } else if (age >= 15 && age <= 17) {
+                return 'teenagers';
+            } else if (age >= 18) {
+                return 'adults';
+            } else {
+                return 'children'; // Default for ages below 8
+            }
+        }
+
+        function getAgeCategoryLabel(age) {
+            const category = getAgeCategory(age);
+            const t = translations[currentLanguage];
+            switch(category) {
+                case 'children': return t.children;
+                case 'youth': return t.youth;
+                case 'teenagers': return t.teenagers;
+                case 'adults': return t.adults;
+                default: return t.children;
+            }
+        }
+
+        function getAgeCategoryClass(age) {
+            const category = getAgeCategory(age);
+            switch(category) {
+                case 'children': return 'category-children';
+                case 'youth': return 'category-youth';
+                case 'teenagers': return 'category-teenagers';
+                case 'adults': return 'category-adults';
+                default: return 'category-children';
+            }
+        }
+
+        function toggleInsuranceType() {
+            const insuranceYes = document.querySelector('input[name="insurance"][value="نعم"]').checked;
+            document.getElementById('insurance-type-container').classList.toggle('hidden', !insuranceYes);
+            document.getElementById('insurance-number-container').classList.toggle('hidden', !insuranceYes);
+        }
+
+        function showAddModal() {
+            currentEditId = null;
+            currentPhotoData = null;
+            document.getElementById('modal-title').textContent = currentLanguage === 'ar' ? 'إضافة لاعب جديد' : 'Ajouter un nouveau joueur';
+            document.getElementById('player-form').reset();
+            document.getElementById('insurance-type-container').classList.add('hidden');
+            document.getElementById('insurance-number-container').classList.add('hidden');
+            document.querySelectorAll('input[name="insurance"]')[1].checked = true; // Set "لا" as default
+            
+            // Reset photo preview
+            const previewImage = document.getElementById('photo-preview');
+            previewImage.src = '';
+            previewImage.style.display = 'none';
+            
+            document.getElementById('player-modal').classList.remove('hidden');
+            document.getElementById('player-modal').querySelector('.modal-content').classList.add('slide-in');
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('player-modal');
+            const modalContent = modal.querySelector('.modal-content');
+            modalContent.classList.remove('slide-in');
+            modalContent.classList.add('slide-out');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modalContent.classList.remove('slide-out');
+            }, 400);
+        }
+
+        function showEditModal(player) {
+            currentEditId = player.id;
+            currentPhotoData = player.photo;
+            document.getElementById('modal-title').textContent = currentLanguage === 'ar' ? 'تعديل معلومات اللاعب' : 'Modifier les informations du joueur';
+            
+            document.getElementById('name').value = player.name;
+            document.getElementById('birth-date').value = player.birthDate;
+            document.getElementById('age').value = player.age;
+            document.getElementById('weight').value = player.weight;
+            document.getElementById('height').value = player.height;
+            document.getElementById('level').value = player.level;
+            document.getElementById('phone').value = player.phone;
+            document.getElementById('address').value = player.address;
+            document.getElementById('cin').value = player.cin || '';
+            document.getElementById('birth-certificate').value = player.birthCertificate || '';
+            document.getElementById('insurance-number').value = player.insuranceNumber || '';
+            
+            // Set gender
+            document.querySelectorAll('input[name="gender"]').forEach(radio => {
+                radio.checked = radio.value === player.gender;
+            });
+            
+            // Set insurance
+            document.querySelectorAll('input[name="insurance"]').forEach(radio => {
+                radio.checked = radio.value === player.insurance;
+            });
+            toggleInsuranceType();
+            if (player.insurance === 'نعم') {
+                document.getElementById('insurance-type').value = player.insuranceType;
+            }
+            
+            // Set completed months
+            const checkboxes = document.querySelectorAll('#months-checkboxes input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = player.completedMonths.includes(checkbox.value);
+            });
+            
+            // Set photo preview
+            const previewImage = document.getElementById('photo-preview');
+            previewImage.src = player.photo;
+            previewImage.style.display = 'block';
+            
+            document.getElementById('player-modal').classList.remove('hidden');
+            document.getElementById('player-modal').querySelector('.modal-content').classList.add('slide-in');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                birthDate: document.getElementById('birth-date').value,
+                age: parseInt(document.getElementById('age').value),
+                weight: parseInt(document.getElementById('weight').value),
+                height: parseInt(document.getElementById('height').value),
+                gender: document.querySelector('input[name="gender"]:checked').value,
+                level: document.getElementById('level').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                cin: document.getElementById('cin').value,
+                birthCertificate: document.getElementById('birth-certificate').value,
+                completedMonths: Array.from(document.querySelectorAll('#months-checkboxes input[type="checkbox"]:checked')).map(cb => cb.value),
+                insurance: document.querySelector('input[name="insurance"]:checked').value,
+                insuranceType: document.getElementById('insurance-type').value,
+                insuranceNumber: document.getElementById('insurance-number').value,
+                photo: currentPhotoData || `https://placehold.co/100x100/4F46E5/FFFFFF?text=${document.getElementById('name').value.charAt(0)}`
+            };
+            
+            if (currentEditId) {
+                // Update existing player
+                const index = players.findIndex(p => p.id === currentEditId);
+                if (index !== -1) {
+                    players[index] = { ...formData, id: currentEditId };
+                }
+            } else {
+                // Add new player
+                const newPlayer = {
+                    ...formData,
+                    id: Date.now()
+                };
+                players.push(newPlayer);
+            }
+            
+            renderPlayers();
+            renderStats();
+            hideModal();
+        }
+
+        function deletePlayer(id) {
+            const confirmMsg = currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا اللاعب؟' : 'Êtes-vous sûr de vouloir supprimer ce joueur ?';
+            if (confirm(confirmMsg)) {
+                players = players.filter(player => player.id !== id);
+                renderPlayers();
+                renderStats();
+            }
+        }
+
+        function getBeltClass(level) {
+            switch(level) {
+                case 'أبيض': return 'belt-white';
+                case 'أصفر': return 'belt-yellow';
+                case 'أخضر': return 'belt-green';
+                case 'أزرق': return 'belt-blue';
+                case 'أزرق (خط أحمر)': return 'belt-blue-red';
+                case 'أحمر': return 'belt-red';
+                case 'أحمر (خط أسود)': return 'belt-red-black';
+                case 'أحمر (خطين أسودين)': return 'belt-red-double';
+                case 'أسود': return 'belt-black';
+                default: return 'bg-gray-200 border-2 border-gray-400 text-gray-800';
+            }
+        }
+
+        function renderStats() {
+            const t = translations[currentLanguage];
+            const container = document.getElementById('stats-container');
+            const totalPlayers = players.length;
+            const malePlayers = players.filter(p => p.gender === 'ذكر').length;
+            const femalePlayers = players.filter(p => p.gender === 'أنثى').length;
+            const insuredPlayers = players.filter(p => p.insurance === 'نعم').length;
+            const uninsuredPlayers = players.filter(p => p.insurance === 'لا').length;
+            
+            container.innerHTML = `
+                <div class="bg-white rounded-xl shadow-sm p-3 dark:bg-gray-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-600 dark:text-gray-300 sm:text-sm">${t.totalPlayers}</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">${totalPlayers}</p>
+                        </div>
+                        <i class="fas fa-user fa-lg text-blue-500 sm:fa-2x"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-3 dark:bg-gray-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-600 dark:text-gray-300 sm:text-sm">${t.malePlayers}</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">${malePlayers}</p>
+                        </div>
+                        <i class="fas fa-male fa-lg text-blue-500 sm:fa-2x"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-3 dark:bg-gray-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-600 dark:text-gray-300 sm:text-sm">${t.femalePlayers}</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">${femalePlayers}</p>
+                        </div>
+                        <i class="fas fa-female fa-lg text-pink-500 sm:fa-2x"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-3 dark:bg-gray-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-gray-600 dark:text-gray-300 sm:text-sm">${t.insuredPlayers}</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">${insuredPlayers}</p>
+                        </div>
+                        <i class="fas fa-shield-alt fa-lg text-purple-500 sm:fa-2x"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterPlayers() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filterMonth = document.getElementById('month-filter').value;
+            const filterLevel = document.getElementById('level-filter').value;
+            const filterGender = document.getElementById('gender-filter').value;
+            
+            const filtered = players.filter(player => {
+                const matchesSearch = player.name.toLowerCase().includes(searchTerm) || player.phone.includes(searchTerm);
+                const matchesMonth = !filterMonth || player.completedMonths.includes(filterMonth);
+                const matchesLevel = !filterLevel || player.level === filterLevel;
+                const matchesGender = !filterGender || player.gender === filterGender;
+                
+                return matchesSearch && matchesMonth && matchesLevel && matchesGender;
+            });
+            
+            renderPlayersList(filtered, 'players-container', 'no-players-message', 'no-players-title', 'no-players-desc');
+        }
+
+        function renderPlayers() {
+            renderPlayersList(players, 'players-container', 'no-players-message', 'no-players-title', 'no-players-desc');
+        }
+
+        function renderPlayersList(playersList, containerId, noPlayersMessageId, noPlayersTitleId, noPlayersDescId) {
+            const t = translations[currentLanguage];
+            const container = document.getElementById(containerId);
+            const noPlayersMessage = document.getElementById(noPlayersMessageId);
+            
+            if (playersList.length === 0) {
+                container.innerHTML = '';
+                noPlayersMessage.classList.remove('hidden');
+                return;
+            }
+            
+            noPlayersMessage.classList.add('hidden');
+            container.innerHTML = playersList.map(player => `
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden dark:bg-gray-800 player-card">
+                    <div class="p-4">
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="${player.photo}" alt="${player.name}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600 sm:w-16 sm:h-16">
+                            <div class="flex-1">
+                                <h3 class="text-base font-bold text-gray-900 dark:text-white sm:text-lg">${player.name}</h3>
+                                <div class="flex items-center gap-2 mt-1 text-xs text-gray-600 dark:text-gray-300 sm:text-sm">
+                                    <span>${t.ageLabel.split('(')[0]}: ${player.age} ${currentLanguage === 'ar' ? 'سنة' : 'ans'}</span>
+                                    <span>| ${t.weightLabel.split('(')[0]}: ${player.weight} ${currentLanguage === 'ar' ? 'كغ' : 'kg'}</span>
+                                    <span>| ${t.heightLabel.split('(')[0]}: ${player.height} ${currentLanguage === 'ar' ? 'سم' : 'cm'}</span>
+                                </div>
+                                <div class="mt-1 flex gap-1">
+                                    <div class="inline-block px-2 py-1 rounded-full text-xs font-medium ${getBeltClass(player.level)} sm:text-sm">
+                                        ${currentLanguage === 'ar' ? player.level : getFrenchBeltName(player.level)}
+                                    </div>
+                                    <div class="inline-block px-2 py-1 rounded-full text-xs font-medium ${getAgeCategoryClass(player.age)} sm:text-sm">
+                                        ${getAgeCategoryLabel(player.age)}
+                                    </div>
+                                    ${player.insurance === 'لا' ? `<div class="inline-block px-2 py-1 rounded-full text-xs font-medium alert-insurance sm:text-sm">
+                                        بدون تأمين
+                                    </div>` : ''}
+                                    ${!player.completedMonths.includes(months.ar[new Date().getMonth()]) ? `<div class="inline-block px-2 py-1 rounded-full text-xs font-medium alert-month sm:text-sm">
+                                        شهر غير مكتمل
+                                    </div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-xs text-gray-600 dark:text-gray-300 sm:text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-phone"></i>
+                                <span>${player.phone}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${player.address}</span>
+                            </div>
+                            ${player.cin ? `<div class="flex items-center gap-2">
+                                <i class="fas fa-id-card"></i>
+                                <span>CIN: ${player.cin}</span>
+                            </div>` : ''}
+                            ${player.birthCertificate ? `<div class="flex items-center gap-2">
+                                <i class="fas fa-file-alt"></i>
+                                <span>عقد الازدياد: ${player.birthCertificate}</span>
+                            </div>` : ''}
+                            ${player.insurance === 'نعم' && player.insuranceNumber ? `<div class="flex items-center gap-2">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>رقم التأمين: ${player.insuranceNumber}</span>
+                            </div>` : ''}
+                            
+                            <div class="pt-2 border-t dark:border-gray-700">
+                                <p class="text-xs font-medium text-gray-900 dark:text-white mb-1 sm:text-sm">${t.completedMonths}:</p>
+                                <div class="flex flex-wrap gap-1">
+                                    ${player.completedMonths.map(month => `
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900 dark:text-green-100">
+                                            ${currentLanguage === 'ar' ? month : getFrenchMonthName(month)}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t dark:border-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-shield-alt text-gray-600 dark:text-gray-300"></i>
+                                    <span class="font-medium ${player.insurance === 'نعم' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
+                                        ${player.insurance === 'نعم' ? t.withInsurance : t.withoutInsurance}
+                                    </span>
+                                    ${player.insurance === 'نعم' ? `<span class="text-xs text-gray-600 dark:text-gray-400">(${currentLanguage === 'ar' ? player.insuranceType : getFrenchInsuranceType(player.insuranceType)})</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-1 mt-3 pt-3 border-t dark:border-gray-700">
+                            <button onclick="showEditModal(${JSON.stringify(player).replace(/"/g, '&quot;')})" class="flex-1 bg-blue-100 text-blue-700 py-1 px-2 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-1 text-xs dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 sm:text-sm">
+                                <i class="fas fa-edit"></i>
+                                <span>${t.editBtn}</span>
+                            </button>
+                            <button onclick="deletePlayer(${player.id})" class="flex-1 bg-red-100 text-red-700 py-1 px-2 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-1 text-xs dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 sm:text-sm">
+                                <i class="fas fa-trash"></i>
+                                <span>${t.deleteBtn}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getFrenchBeltName(arabicName) {
+            const mapping = {
+                'أبيض': 'Blanc',
+                'أصفر': 'Jaune',
+                'أخضر': 'Vert',
+                'أزرق': 'Bleu',
+                'أزرق (خط أحمر)': 'Bleu (ligne rouge)',
+                'أحمر': 'Rouge',
+                'أحمر (خط أسود)': 'Rouge (ligne noire)',
+                'أحمر (خطين أسودين)': 'Rouge (deux lignes noires)',
+                'أسود': 'Noir'
+            };
+            return mapping[arabicName] || arabicName;
+        }
+
+        function getFrenchMonthName(arabicMonth) {
+            const mapping = {
+                'يناير': 'Janvier',
+                'فبراير': 'Février',
+                'مارس': 'Mars',
+                'أبريل': 'Avril',
+                'ماي': 'Mai',
+                'يونيو': 'Juin',
+                'يوليوز': 'Juillet',
+                'غشت': 'Août',
+                'شتنبر': 'Septembre',
+                'أكتوبر': 'Octobre',
+                'نونبر': 'Novembre',
+                'دجنبر': 'Décembre'
+            };
+            return mapping[arabicMonth] || arabicMonth;
+        }
+
+        function getFrenchInsuranceType(arabicType) {
+            const mapping = {
+                'تأمين الجامعة': 'Assurance universitaire',
+                'تأمين شركة خاصة': 'Assurance privée'
+            };
+            return mapping[arabicType] || arabicType;
+        }
+
+        function printCurrentMonthPlayers() {
+            const currentMonth = months.ar[new Date().getMonth()];
+            const currentMonthPlayers = players.filter(player => player.completedMonths.includes(currentMonth));
+            
+            if (currentMonthPlayers.length === 0) {
+                alert('لا يوجد لاعبين مكتملين للشهر الحالي');
+                return;
+            }
+            
+            // Create print content
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>اللاعبين المكتملين للشهر الحالي - ${currentMonth}</title>
+                    <style>
+                        body { font-family: 'Tajawal', sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        .header img { width: 100px; height: 100px; border-radius: 50%; }
+                        .header h1 { font-size: 24px; margin: 10px 0; }
+                        .player { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; }
+                        .player-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+                        .player-info { margin: 5px 0; color: #666; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <img src="https://i.imgur.com/5GQqJZK.png" alt="شعار الجمعية">
+                        <h1>جمعية أبطال شراكا للتايكوندو</h1>
+                        <h2>اللاعبين المكتملين للشهر الحالي - ${currentMonth}</h2>
+                        <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-MA')}</p>
+                    </div>
+                    ${currentMonthPlayers.map(player => `
+                        <div class="player">
+                            <div class="player-name">${player.name}</div>
+                            <div class="player-info">العمر: ${player.age} سنة | الوزن: ${player.weight} كغ | الطول: ${player.height} سم</div>
+                            <div class="player-info">الرتبة: ${player.level} | الجنس: ${player.gender}</div>
+                            <div class="player-info">الهاتف: ${player.phone} | العنوان: ${player.address}</div>
+                            ${player.cin ? `<div class="player-info">CIN: ${player.cin}</div>` : ''}
+                            ${player.birthCertificate ? `<div class="player-info">عقد الازدياد: ${player.birthCertificate}</div>` : ''}
+                            ${player.insurance === 'نعم' ? `<div class="player-info">التأمين: ${player.insuranceType} | رقم التأمين: ${player.insuranceNumber}</div>` : '<div class="player-info">بدون تأمين</div>'}
+                        </div>
+                    `).join('')}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function printUninsuredPlayers() {
+            const uninsuredPlayers = players.filter(player => player.insurance === 'لا');
+            
+            if (uninsuredPlayers.length === 0) {
+                alert('جميع اللاعبين لديهم تأمين');
+                return;
+            }
+            
+            // Create print content
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>اللاعبين غير المضمونين</title>
+                    <style>
+                        body { font-family: 'Tajawal', sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        .header img { width: 100px; height: 100px; border-radius: 50%; }
+                        .header h1 { font-size: 24px; margin: 10px 0; }
+                        .player { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; background-color: #fff3cd; }
+                        .player-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #856404; }
+                        .player-info { margin: 5px 0; color: #666; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <img src="https://i.imgur.com/5GQqJZK.png" alt="شعار الجمعية">
+                        <h1>جمعية أبطال شراكا للتايكوندو</h1>
+                        <h2>اللاعبين غير المضمونين</h2>
+                        <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-MA')}</p>
+                    </div>
+                    ${uninsuredPlayers.map(player => `
+                        <div class="player">
+                            <div class="player-name">${player.name}</div>
+                            <div class="player-info">العمر: ${player.age} سنة | الوزن: ${player.weight} كغ | الطول: ${player.height} سم</div>
+                            <div class="player-info">الرتبة: ${player.level} | الجنس: ${player.gender}</div>
+                            <div class="player-info">الهاتف: ${player.phone} | العنوان: ${player.address}</div>
+                            ${player.cin ? `<div class="player-info">CIN: ${player.cin}</div>` : ''}
+                            ${player.birthCertificate ? `<div class="player-info">عقد الازدياد: ${player.birthCertificate}</div>` : ''}
+                            <div class="player-info" style="color: #856404; font-weight: bold;">بدون تأمين</div>
+                        </div>
+                    `).join('')}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function changeLanguage() {
+            const newLanguage = document.getElementById('language-select').value;
+            updateLanguage(newLanguage);
+            localStorage.setItem('language', newLanguage);
+        }
+
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+            
+            // Update body direction and font
+            if (lang === 'fr') {
+                document.body.classList.add('fr');
+                document.body.setAttribute('dir', 'ltr');
+                document.body.setAttribute('lang', 'fr');
+            } else {
+                document.body.classList.remove('fr');
+                document.body.setAttribute('dir', 'rtl');
+                document.body.setAttribute('lang', 'ar');
+            }
+            
+            // Update all text elements
+            document.getElementById('main-title').textContent = t.mainTitle;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('add-player-text').textContent = t.addPlayer;
+            document.getElementById('add-player-btn').innerHTML = `<i class="fas fa-plus text-xs sm:text-base"></i><span id="add-player-text" class="text-xs sm:text-base">${t.addPlayer}</span>`;
+            document.getElementById('no-players-title').textContent = t.noPlayers;
+            document.getElementById('no-players-desc').textContent = t.noPlayersDesc;
+            document.getElementById('name-label').textContent = t.nameLabel;
+            document.getElementById('birth-date-label').textContent = t.birthDateLabel;
+            document.getElementById('age-label').textContent = t.ageLabel;
+            document.getElementById('weight-label').textContent = t.weightLabel;
+            document.getElementById('height-label').textContent = t.heightLabel;
+            document.getElementById('gender-label').textContent = t.genderLabel;
+            document.getElementById('male-text').textContent = t.male;
+            document.getElementById('female-text').textContent = t.female;
+            document.getElementById('level-label').textContent = t.levelLabel;
+            document.getElementById('phone-label').textContent = t.phoneLabel;
+            document.getElementById('address-label').textContent = t.addressLabel;
+            document.getElementById('cin-label').textContent = t.cinLabel;
+            document.getElementById('birth-certificate-label').textContent = t.birthCertificateLabel;
+            document.getElementById('photo-label').textContent = t.photoLabel;
+            document.getElementById('upload-text').textContent = t.uploadText;
+            document.getElementById('months-label').textContent = t.monthsLabel;
+            document.getElementById('insurance-label').textContent = t.insuranceLabel;
+            document.getElementById('insurance-yes').textContent = t.insuranceYes;
+            document.getElementById('insurance-no').textContent = t.insuranceNo;
+            document.getElementById('insurance-type-label').textContent = t.insuranceTypeLabel;
+            document.getElementById('insurance-number-label').textContent = t.insuranceNumberLabel;
+            document.getElementById('submit-btn').textContent = t.submitBtn;
+            document.getElementById('cancel-btn').textContent = t.cancelBtn;
+            
+            // Update placeholders and options
+            document.getElementById('search-input').placeholder = t.searchPlaceholder;
+            document.getElementById('month-filter').innerHTML = `
+                <option value="">${t.allMonths}</option>
+                ${months.ar.map((month, index) => `<option value="${month}">${months[lang][index]}</option>`).join('')}
+            `;
+            document.getElementById('level-filter').innerHTML = `
+                <option value="">${t.allLevels}</option>
+                ${beltLevels.ar.map((level, index) => `<option value="${level.value}">${beltLevels[lang][index].label}</option>`).join('')}
+            `;
+            document.getElementById('gender-filter').innerHTML = `
+                <option value="">${t.allGenders}</option>
+                <option value="ذكر">${t.males}</option>
+                <option value="أنثى">${t.females}</option>
+            `;
+            
+            // Repopulate months checkboxes
+            populateMonthsCheckboxes();
+            
+            // Re-render everything
+            renderPlayers();
+            renderStats();
+        }
+
+        function toggleDarkMode() {
+            if (isDarkMode) {
+                disableDarkMode();
+            } else {
+                enableDarkMode();
+            }
+        }
+
+        function enableDarkMode() {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dark-mode-toggle').innerHTML = '<i class="fas fa-sun text-yellow-400"></i>';
+            isDarkMode = true;
+            localStorage.setItem('darkMode', 'true');
+        }
+
+        function disableDarkMode() {
+            document.body.classList.remove('dark-mode');
+            document.getElementById('dark-mode-toggle').innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
+            isDarkMode = false;
+            localStorage.setItem('darkMode', 'false');
+        }
+    </script>
+</body>
+</html>
+```
