@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABTAL CHRAKA  Club - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" href="test.png" type="image/png">
+</head>
+<body data-theme="light">
+    <header>
+        <div class="logo-container">
+            <img src="test.png" alt="Taekwondo Club Logo">
+            <h1 id="app-title">ABTAL CHRAKA Club</h1>
+        </div>
+        <nav class="controls">
+            <button id="theme-toggle" class="control-btn" title="Toggle Dark/Light Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+            <div class="language-switcher">
+                <select id="lang-switcher" class="control-select">
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+            <a href="login.html" class="control-btn logout-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
+        </nav>
+    </header>
+    
+    <main class="dashboard-container">
+        <section class="summary-cards">
+            <div class="card total-members-card" id="total-members-card" onclick="showPlayerList()">
+                <i class="fas fa-users card-icon"></i>
+                <h2 id="members-count">0</h2>
+                <p data-key="total-members">Total Members</p>
+            </div>
+            <div class="card unpaid-card" id="unpaid-members-card" onclick="filterPlayers('unpaid')">
+                <i class="fas fa-money-bill-wave-alt card-icon"></i>
+                <h2 id="unpaid-count">0</h2>
+                <p data-key="unpaid-members">Unpaid This Month</p>
+            </div>
+            <div class="card uninsured-card" id="uninsured-members-card" onclick="filterPlayers('uninsured')">
+                <i class="fas fa-shield-alt card-icon"></i>
+                <h2 id="uninsured-count">0</h2>
+                <p data-key="uninsured-members">Uninsured Players</p>
+            </div>
+            <div class="card add-player-card" onclick="document.getElementById('player-form-section').scrollIntoView({ behavior: 'smooth' });">
+                <i class="fas fa-user-plus card-icon"></i>
+                <p data-key="add-new-player">Add New Player</p>
+            </div>
+        </section>
+
+        <section class="player-list-section">
+            <h2 data-key="player-list-title">Club Members List</h2>
+            
+            <div class="list-controls">
+                <select id="player-filter" class="control-select" onchange="filterPlayers(this.value)">
+                    <option value="all" data-key="filter-all">All Players</option>
+                    <option value="male" data-key="filter-male">Male Players</option>
+                    <option value="female" data-key="filter-female">Female Players</option>
+                    <option value="unpaid" data-key="filter-unpaid">Unpaid Players</option>
+                    <option value="uninsured" data-key="filter-uninsured">Uninsured Players</option>
+                </select>
+                <div class="export-btns">
+                    <button id="print-paid" class="control-btn" data-key="print-paid"><i class="fas fa-print"></i> Paid List</button>
+                    <button id="print-unpaid" class="control-btn" data-key="print-unpaid"><i class="fas fa-print"></i> Unpaid List</button>
+                    <button id="print-uninsured" class="control-btn" data-key="print-uninsured"><i class="fas fa-print"></i> Uninsured List</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="player-data-table">
+                    <thead>
+                        <tr>
+                            <th data-key="th-name">Name</th>
+                            <th data-key="th-age">Age</th>
+                            <th data-key="th-belt">Belt</th>
+                            <th data-key="th-category">Category</th>
+                            <th data-key="th-paid">Paid</th>
+                            <th data-key="th-insured">Insured</th>
+                            <th data-key="th-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="players-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="player-form-section" class="player-form-section">
+            <h2 id="form-title" data-key="add-player-title">Add New Player</h2>
+            <form id="player-form" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="player-id">
+                
+                <div class="form-grid">
+                    <div class="form-group image-upload-group">
+                        <label data-key="label-image" for="player-image">Player Image</label>
+                        <input type="file" id="player-image" accept="image/*" onchange="previewImage(event)">
+                        <div id="image-preview" class="image-preview"></div>
+                        <p class="file-info" data-key="image-note">Upload or drag and drop image here.</p>
+                    </div>
+
+                    <div class="personal-info-grid">
+                        <div class="form-group">
+                            <label data-key="label-fullname" for="full-name">Full Name *</label>
+                            <input type="text" id="full-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-key="label-gender" for="gender">Gender *</label>
+                            <select id="gender" required>
+                                <option value="male" data-key="gender-male">Male</option>
+                                <option value="female" data-key="gender-female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-key="label-birthdate" for="birthdate">Birthdate *</label>
+                            <input type="date" id="birthdate" required onchange="calculateAge()">
+                            <span id="calculated-age" class="age-display"></span>
+                        </div>
+                        <div class="form-group">
+                            <label data-key="label-height" for="height">Height (cm)</label>
+                            <input type="number" id="height">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="label-weight" for="weight">Weight (kg)</label>
+                            <input type="number" id="weight">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="label-id" for="cin">CIN / Birth Cert. No.</label>
+                            <input type="text" id="cin">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid payment-belt-grid">
+                    <div class="form-group">
+                        <label data-key="label-belt" for="belt-rank">Belt Rank *</label>
+                        <select id="belt-rank" required>
+                            </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-key="label-insurance-type" for="insurance-type">Insurance Type</label>
+                        <select id="insurance-type">
+                            <option value="" data-key="insurance-none">None</option>
+                            <option value="university" data-key="insurance-university">University Insurance</option>
+                            <option value="private" data-key="insurance-private">Private Company Insurance</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-key="label-insurance-number" for="insurance-number">Insurance Number</label>
+                        <input type="text" id="insurance-number">
+                    </div>
+                </div>
+
+                <div class="form-group payment-tracker-group">
+                    <label data-key="label-payment-tracker">Monthly Payment Tracker (Check Paid Months)</label>
+                    <div class="month-checkboxes" id="month-checkboxes">
+                        </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="save-btn" data-key="btn-add">Add Player</button>
+                    <button type="button" id="cancel-btn" class="cancel-btn" data-key="btn-cancel" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
